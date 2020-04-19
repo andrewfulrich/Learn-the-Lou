@@ -14,7 +14,7 @@ import OSM from 'ol/source/osm';
 class App extends Component {
   constructor(props) {
     super(props)
-    
+
   }
   render() {
     const onMapInit = async map => {
@@ -39,7 +39,7 @@ class App extends Component {
         const extent=feature.getGeometry().getExtent()
         const center=olProj.toLonLat(olExtent.getCenter(extent))
         //centerAndZoom(map,{y:center[1],x:center[0],zoom:16})
-  
+
         // var extent = my_vector_layer.getSource().getExtent();
         map.getView().fit(extent, map.getSize());
       }
@@ -48,7 +48,7 @@ class App extends Component {
       // const data = await request.json()
       // const names=data.features.map(f=>f.properties.nhd_name)
       // console.log(names)
-  
+
       console.log('dataLayer', dataLayer2)
       // centerAndZoom(map,{y:38.622042,x:-90.280927,zoom:12.52})
     }
@@ -67,7 +67,7 @@ class App extends Component {
           "point": { "iconColor": "#ffffff", "fillColor": "#FF6FA0", "strokeColor": "#DB4680" },
           "transit": { "fillColor": "#AA6DE0" }
       },
-        "version": "1.0" 
+        "version": "1.0"
     };
     const bingOptions={
       key:'AkmzPc-MgCT7p-2b7GXljWNSVrJRMNnVcNC_WZZrMn7IPoVb5L5VbeiZu8lwcIEQ',
@@ -84,20 +84,19 @@ class App extends Component {
             sourceOpts:bingOptions
           })
         })
-      ]
+      ],
+      target: 'map'
     })
-    
+
     return (
-<Map map={myMap} onMapInit={onMapInit} fullScreen>
-      
-      <Controls />
-      <Popup />
-      <LayerPanel />
-    </Map>
-      
+      <Map map={myMap} onMapInit={onMapInit} fullScreen>
+        <Controls />
+        <Popup />
+        <LayerPanel />
+      </Map>
     )
   }
-  
+
 }
 
 export default App
