@@ -14,39 +14,7 @@ import OSM from 'ol/source/osm';
 class App extends Component {
   constructor(props) {
     super(props)
-    var myStyle = {
-      "elements": {
-          "water": { "fillColor": "#a1e0ff" },
-          "waterPoint": { "iconColor": "#a1e0ff" },
-          "transportation": { "strokeColor": "#aa6de0" },
-          "road": { "fillColor": "#b892db" },
-          "railway": { "strokeColor": "#a495b2" },
-          "structure": { "fillColor": "#ffffff" },
-          "runway": { "fillColor": "#ff7fed" },
-          "area": { "fillColor": "#f39ebd" },
-          "political": { "borderStrokeColor": "#fe6850", "borderOutlineColor": "#55ffff" },
-          "point": { "iconColor": "#ffffff", "fillColor": "#FF6FA0", "strokeColor": "#DB4680" },
-          "transit": { "fillColor": "#AA6DE0" }
-      },
-        "version": "1.0" 
-    };
-    const bingOptions={
-      key:'AkmzPc-MgCT7p-2b7GXljWNSVrJRMNnVcNC_WZZrMn7IPoVb5L5VbeiZu8lwcIEQ',
-      customMapStyle: myStyle
-    }
-    this.myMap = new olMap({
-      view: new olView({
-        center: [0, 0],
-        zoom: 1
-      }),
-      layers: [
-        new TileLayer({
-          source: new BingMaps({
-            sourceOpts:bingOptions
-          })
-        })
-      ]
-    })
+    
   }
   render() {
     const onMapInit = async map => {
@@ -84,14 +52,43 @@ class App extends Component {
       console.log('dataLayer', dataLayer2)
       // centerAndZoom(map,{y:38.622042,x:-90.280927,zoom:12.52})
     }
-    
-    
-    const t={
-      title:'hi'
+
+    var myStyle = {
+      "elements": {
+          "water": { "fillColor": "#a1e0ff" },
+          "waterPoint": { "iconColor": "#a1e0ff" },
+          "transportation": { "strokeColor": "#aa6de0" },
+          "road": { "fillColor": "#b892db" },
+          "railway": { "strokeColor": "#a495b2" },
+          "structure": { "fillColor": "#ffffff" },
+          "runway": { "fillColor": "#ff7fed" },
+          "area": { "fillColor": "#f39ebd" },
+          "political": { "borderStrokeColor": "#fe6850", "borderOutlineColor": "#55ffff" },
+          "point": { "iconColor": "#ffffff", "fillColor": "#FF6FA0", "strokeColor": "#DB4680" },
+          "transit": { "fillColor": "#AA6DE0" }
+      },
+        "version": "1.0" 
+    };
+    const bingOptions={
+      key:'AkmzPc-MgCT7p-2b7GXljWNSVrJRMNnVcNC_WZZrMn7IPoVb5L5VbeiZu8lwcIEQ',
+      customMapStyle: myStyle
     }
+    const myMap = new olMap({
+      view: new olView({
+        center: [0, 0],
+        zoom: 1
+      }),
+      layers: [
+        new TileLayer({
+          source: new BingMaps({
+            sourceOpts:bingOptions
+          })
+        })
+      ]
+    })
     
     return (
-<Map onMapInit={onMapInit} fullScreen>
+<Map map={myMap} onMapInit={onMapInit} fullScreen>
       
       <Controls />
       <Popup />
