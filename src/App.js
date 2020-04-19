@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Controls, Map, Popup, createDataLayer, loadDataLayer,centerAndZoom } from '@bayer/ol-kit'
+import { Controls, Map, Popup, LayerPanel, loadDataLayer } from '@bayer/ol-kit'
 import olStyle from 'ol/style/style'
 import olStroke from 'ol/style/stroke'
 import olFill from 'ol/style/fill'
@@ -31,7 +31,7 @@ class App extends Component {
         "version": "1.0" 
     };
     const bingOptions={
-      key:'As-q450Iz8OYUFaNrUBf6dtlt5lhLVwj1M5OywsdxHWWuTjPGnyKhutp2sh7zJZB',
+      key:'AkmzPc-MgCT7p-2b7GXljWNSVrJRMNnVcNC_WZZrMn7IPoVb5L5VbeiZu8lwcIEQ',
       customMapStyle: myStyle
     }
     this.myMap = new olMap({
@@ -95,7 +95,7 @@ class App extends Component {
       
       <Controls />
       <Popup />
-
+      <LayerPanel />
     </Map>
       
     )
