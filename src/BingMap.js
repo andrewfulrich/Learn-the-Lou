@@ -11,12 +11,13 @@ import olView from 'ol/view'
 import TileLayer from 'ol/layer/tile';
 import BingMaps from 'ol/source/bingmaps';
 import OSM from 'ol/source/osm';
+import { ZoomControls } from '@bayer/ol-kit/core/Controls'
 
 class BingMap extends Component {
   constructor(props) {
     super(props)
     const bingy=new BingMaps({
-      key: 'YOUR KEY HERE',
+      key: 'AvGbr0brC5E7wrJ0C-XGykeJ0ngQkRQegl08LYdYtyJnFg3BxZomRllZUzGRembV',
       imagerySet: 'RoadOnDemand',
       mapLayer:'Background',
       tileLoadFunction:function(tile, src) {
@@ -44,10 +45,12 @@ class BingMap extends Component {
     })
   }
   render() {
+
     const onMapInit = async map => {
       console.log('we got a map!', map)
       window.map = map
       console.log(map.getLayers())
+      
       const munies = await loadDataLayer(map,'https://maps.stlouisco.com/arcgis/rest/services/OpenData/OpenData/FeatureServer/6/query?where=1%3D1&outFields=MUNICIPALITY,last_edited_date,GlobalID&outSR=4326&f=geojson')
       const neighborhoods = await loadDataLayer(map, 'https://maps6.stlouis-mo.gov/arcgis/rest/services/Hosted/Neighborhood_Boundaries/FeatureServer/0/query?f=geojson&where=1=1&returnGeometry=true&outSR=4326&cacheHint=true')
       
@@ -155,31 +158,8 @@ class BingMap extends Component {
       }
       const features=neighborhoods.getSource().getFeatures()
       
-      //console.log(features)
-      const tif=features.find(f=>f.get('nhd_name')=='West End')
-      // //console.log(tif)
-      // tif.setStyle(new olStyle({
-      //   fill: new olFill({
-      //     color: 'rgba(0, 0, 255, 0.3)'
-      //   }),
-      //   stroke: new olStroke({//
-      //     color: 'black'
-      //   }),
-      //   text:new olText({
-      //     font: '20px Calibri,sans-serif',
-      //     overflow: true,
-      //     fill: new olFill({
-      //       color: '#000'
-      //     }),
-      //     stroke: new olStroke({
-      //       color: '#fff',
-      //       width: 3
-      //     }),
-      //     text:tif.get('nhd_name')
-      //   })
-      // }))
       const rawmunyFeatures=munies.getSource().getFeatures()
-      const irrelevant=rawmunyFeatures.filter(f=>f.get('MUNICIPALITY')=='UNINCORPORATED')
+      const irrelevant=rawmunyFeatures.filter(f=>f.get('MUNICIPALITY').toLowerCase()=='UNINCORPORATED'.toLowerCase())
       const munySource=munies.getSource()
       irrelevant.forEach(f=>munySource.removeFeature(f))
       const munyFeatures=munies.getSource().getFeatures()
@@ -201,13 +181,38 @@ class BingMap extends Component {
       // const data = await request.json()
       // const names=data.features.map(f=>f.properties.nhd_name)
       // console.log(names)
-      /**************** fit zoom to both layers *******************/
-      const combinedExtent=olExtent.createEmpty()
-      olExtent.extend(combinedExtent, munies.getSource().getExtent());
-      olExtent.extend(combinedExtent, neighborhoods.getSource().getExtent());
-      map.getView().fit(combinedExtent, map.getSize());
-      map.getView().setZoom(map.getView().getZoom()+0.7)
-      /**************** /fit zoom to both layers *******************/
+      
+      function updateCityCountyBoth(cityCountyBoth) {
+        /**************** fit zoom to both layers *******************/
+        const combinedExtent=olExtent.createEmpty()
+        if(cityCountyBoth=='Both' || cityCountyBoth=='County') {
+          olExtent.extend(combinedExtent, munies.getSource().getExtent());
+        }
+        if(cityCountyBoth=='Both' || cityCountyBoth=='City') {
+          olExtent.extend(combinedExtent, neighborhoods.getSource().getExtent());
+        }
+        map.getView().fit(combinedExtent, map.getSize());
+        map.getView().setZoom(map.getView().getZoom()+0.5)
+        /**************** /fit zoom to both layers *******************/
+
+        if(cityCountyBoth=='City') {
+          munies.setVisible(false)
+          neighborhoods.setVisible(true)
+        }
+        if(cityCountyBoth=='County') {
+          neighborhoods.setVisible(false)
+          munies.setVisible(true)
+        }
+        if(cityCountyBoth=='Both') {
+          munies.setVisible(true)
+          neighborhoods.setVisible(true)
+        }
+      }
+      updateCityCountyBoth('Both')
+      document.addEventListener('setCityCountyBoth',(e)=>{
+        updateCityCountyBoth(e.detail)
+      })
+      
 
       function showAllLabels() {
         munyFeatures.forEach(f=>showLabel(f,false))
@@ -216,34 +221,53 @@ class BingMap extends Component {
       showAllLabels()
 
       /**************** get the next random thing *******************/
-      function getNextThing() {
+      function getNextThing(inQueue,maxInQueue) {
+        console.log('in queue:',inQueue,'Max in Queue:',maxInQueue)
         munyFeatures.forEach(f=>showLabel(f))
         features.forEach(f=>showLabel(f,true))
-        const nextIndex=Math.floor(Math.random()*(munyFeatures.length+features.length-1))
-        let nextFeature,isNeighborhood;
-        if(nextIndex < munyFeatures.length) {
-          nextFeature=munyFeatures[nextIndex]
-          isNeighborhood=false; //todo: just add this as a property of the features
-        } else {
-          nextFeature=features[nextIndex-munyFeatures.length]
-          if(nextFeature.get('MUNICIPALITY') == 'UNINCORPORATED') {
-            console.log('got unincorporated') //this shouldn't happen anymore
-            return getNextThing()
-          }
-          isNeighborhood=true
-        }
-        console.log("next feature: ",nextFeature)
-        highlight(nextFeature,isNeighborhood)
-        zoomToFeature(nextFeature)
 
-        //callback(isNeighborhood ? getMunyText(nextFeature):nextFeature.get('nhd_name'))
-        const event=new CustomEvent('setName',{
-          detail:isNeighborhood? nextFeature.get('nhd_name') : getMunyText(nextFeature)
-        })
-        document.dispatchEvent(event)
+        function setNextFeature(nf,isNeighborhood) {
+          console.log("next feature: ",nf)
+          highlight(nf,isNeighborhood)
+          zoomToFeature(nf)
+
+          const event=new CustomEvent('setName',{
+            detail:isNeighborhood? nf.get('nhd_name') : getMunyText(nf)
+          })
+          document.dispatchEvent(event)
+        }
+        if(inQueue.length >= maxInQueue) {
+          const nextIndex=Math.floor(Math.random()*maxInQueue)
+          const needle=inQueue[nextIndex] || inQueue[0]
+          const munyFeature=munyFeatures.find(f=>f.get('MUNICIPALITY').toLowerCase()==needle.toLowerCase())
+          const cityFeature=features.find(f=>f.get('nhd_name').toLowerCase()==needle.toLowerCase())
+          console.log(' city: ',cityFeature,' county: ',munyFeature,' in queue: ',inQueue,' max: ',maxInQueue,' finding: ',needle)
+          if(munyFeature) {
+            setNextFeature(munyFeature,false)
+          } else {
+            setNextFeature(cityFeature,true)
+          }
+
+        } else {
+          const nextIndex=Math.floor(Math.random()*(munyFeatures.length+features.length-1))
+          let nextFeature,isNeighborhood;
+          if(nextIndex < munyFeatures.length) {
+            nextFeature=munyFeatures[nextIndex]
+            isNeighborhood=false; //todo: just add this as a property of the features
+          } else {
+            nextFeature=features[nextIndex-munyFeatures.length]
+            if(nextFeature.get('MUNICIPALITY') == 'UNINCORPORATED') {
+              console.log('got unincorporated') //this shouldn't happen anymore
+              return getNextThing()
+            }
+            isNeighborhood=true
+          }
+          setNextFeature(nextFeature,isNeighborhood)
+        }
+        
       }
-      document.addEventListener('getNext',()=>{
-        getNextThing()
+      document.addEventListener('getNext',e=>{
+        getNextThing(e.detail.inQueue,e.detail.maxInQueue)
       })
       /**************** /get the next random thing *******************/
 
@@ -251,14 +275,10 @@ class BingMap extends Component {
       // centerAndZoom(map,{y:38.622042,x:-90.280927,zoom:12.52})
     }
 
-    
-
-    // console.log('props:',bingy.getProperties())
-    
     return (
 
 <Map map={this.myMap} onMapInit={onMapInit}>
-<Controls />
+<Controls><ZoomControls /></Controls>
       </Map>
       
     )
