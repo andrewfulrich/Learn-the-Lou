@@ -27,9 +27,24 @@ function App() {
     // console.log(e); //todo this keeps firing multiple times per click
     (e.detail && e.detail.length>0) ? setCurrentName(e.detail) : setCurrentName('UNINCORPORATED')
   })
-  function updateAnswerQueue() {
-    const eligible=Object.keys(answers).filter(ans=>answers[ans].right < correctMin && (answers[ans].right/(answers[ans].wrong || 1))*100 < correctPct )
-    setInQueue(eligible.slice(0,maxInQueue))
+  function updateAnswerQueue(a) {
+    function getPct(ans) {
+      if(a[ans].right==0 && a[ans].wrong==0) return 0;
+      const pct=(a[ans].right/(a[ans].wrong + a[ans].right))*100
+      return pct
+    }
+    function lessThanMin(ans) {
+      console.log('less than min: ',a[ans].right <= correctMin,' ans: ',ans,'a: ',a,'min: ',correctMin)
+      return a[ans].right < correctMin
+    }
+    console.log('correctMin:',correctMin)
+    const eligible=Object.keys(a).filter(ans=>{
+      if(lessThanMin(ans)) return true;
+      else if(getPct(ans) < correctPct) return true;
+      else return false;
+    } )
+    console.log('inQueue:',eligible,'a: ',a)
+    setInQueue(eligible)
   }
   function checkAnswer() {
     function newAnswer(right) {
@@ -47,8 +62,9 @@ function App() {
     setCheckingAnswer(true)
     const isRight =currentName.toLowerCase().replace(/\W/g,'')==currentAnswer.toLowerCase().replace(/\W/g,'')
     setIsAnswerRight(isRight)
-    setAnswers({...answers,[currentName]: answers[currentName] !== undefined ?  updateAnswer(currentName,isRight) : newAnswer(isRight)})
-    updateAnswerQueue()
+    const a={...answers,[currentName]: answers[currentName] !== undefined ?  updateAnswer(currentName,isRight) : newAnswer(isRight)}
+    setAnswers(a)
+    updateAnswerQueue(a)
   }
   function startGame() {
     setGameStarted(true)
@@ -94,13 +110,13 @@ function App() {
               <table className="centered">
                 <thead>
                   <tr>
-                    <th>Answer</th><th>Correct</th><th>Incorrect</th>
+                    <th>Answer</th><th>Correct</th><th>Incorrect</th><th>In the Deck?</th>
                   </tr>
                 </thead>
                 <tbody>
                 {Object.keys(answers).map(ans=>
                     <tr key={ans}>
-                      <td>{ans}</td><td>{answers[ans].right}</td><td>{answers[ans].wrong}</td>
+                      <td>{ans}</td><td>{answers[ans].right}</td><td>{answers[ans].wrong}</td><td>{inQueue.includes(ans) ? 'Yes':'No'}</td>
                     </tr>
                   )}
                 </tbody>
