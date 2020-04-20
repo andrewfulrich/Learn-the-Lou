@@ -16,14 +16,18 @@ function App() {
   const [currentName, setCurrentName] = useState('');
   const [checkingAnswer,setCheckingAnswer] = useState(false);
   const [isAnswerRight,setIsAnswerRight] = useState(null);
-  let currentAnswer=''
+  const [correctAnswerCount,setCorrectAnswerCount]=useState(0);
+  const [incorrectAnswerCount,setIncorrectAnswerCount]=useState(0);
+  const [currentAnswer,setCurrentAnswer]=useState('')
   document.addEventListener('setName',(e)=>{
     console.log(e)
     setCurrentName(e.detail)
   })
   function checkAnswer() {
     setCheckingAnswer(true)
-    setIsAnswerRight(currentName.toLowerCase().replace(/\W/g,'')==currentAnswer.toLowerCase().replace(/\W/g,''))
+    const isRight =currentName.toLowerCase().replace(/\W/g,'')==currentAnswer.toLowerCase().replace(/\W/g,'')
+    setIsAnswerRight(isRight)
+    isRight ? setCorrectAnswerCount(correctAnswerCount+1) : setIncorrectAnswerCount(incorrectAnswerCount+1)
   }
   function startGame() {
     setGameStarted(true)
@@ -36,10 +40,7 @@ function App() {
     document.dispatchEvent(event)
     setIsAnswerRight(null)
     setCheckingAnswer(false)
-  }
-
-  function handleChange(e) {
-    currentAnswer=e.target.value
+    setCurrentAnswer('')
   }
   
   return (
@@ -49,7 +50,7 @@ function App() {
         {!gameStarted && <button className="centered" onClick={startGame}>Start</button>}
         {gameStarted &&
         <div className="centered question">
-          <label htmlFor="yourAnswer">What is the name of the area shown below?</label><input onChange={handleChange} />{currentName}
+          <label htmlFor="yourAnswer">What is the name of the area shown below?</label><input value={currentAnswer} onChange={e=>setCurrentAnswer(e.target.value)} />
           {checkingAnswer ? 
             <button onClick={getNext}>Next</button>
             :
@@ -58,6 +59,18 @@ function App() {
           {isAnswerRight !== null &&
             <h3>{isAnswerRight ? `You're correct!`:`Sorry, the answer was ${currentName}`}</h3>
           }
+          <table className="centered">
+            <thead>
+              <tr>
+                <th>Correct Answers</th><th>incorrect Answers</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{correctAnswerCount}</td><td>{incorrectAnswerCount}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
         }
         </div>

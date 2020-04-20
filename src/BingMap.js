@@ -15,7 +15,33 @@ import OSM from 'ol/source/osm';
 class BingMap extends Component {
   constructor(props) {
     super(props)
-
+    const bingy=new BingMaps({
+      key: 'YOUR KEY HERE',
+      imagerySet: 'RoadOnDemand',
+      mapLayer:'Background',
+      tileLoadFunction:function(tile, src) {
+        //hide labels
+        tile.getImage().src = src.replace('it=G,L','it=G');
+        // console.log(tile)
+      }
+      // projection: olProj.createProjection('EPSG:4326')
+    })
+    // console.log('proj:',olProj.createProjection('EPSG:4326'))
+    this.myMap = new olMap({
+      view: new olView({
+        center: [0, 0],
+        zoom: 1
+      }),
+      layers: [
+        new TileLayer({
+          // customMapStyle: myStyle,
+          opacity:1,
+          visible:true,
+          source: bingy
+        })
+      ],
+      target: 'map'
+    })
   }
   render() {
     const onMapInit = async map => {
@@ -152,10 +178,11 @@ class BingMap extends Component {
       //     text:tif.get('nhd_name')
       //   })
       // }))
-      const munyFeatures=munies.getSource().getFeatures()
-      const irrelevant=munyFeatures.filter(f=>f.get('MUNICIPALITY')=='UNINCORPORATED')
+      const rawmunyFeatures=munies.getSource().getFeatures()
+      const irrelevant=rawmunyFeatures.filter(f=>f.get('MUNICIPALITY')=='UNINCORPORATED')
       const munySource=munies.getSource()
       irrelevant.forEach(f=>munySource.removeFeature(f))
+      const munyFeatures=munies.getSource().getFeatures()
       // console.log('irrelevant',irrelevant)
       // console.log('munyFeature: ',munyFeatures[0])
       
@@ -199,6 +226,10 @@ class BingMap extends Component {
           isNeighborhood=false; //todo: just add this as a property of the features
         } else {
           nextFeature=features[nextIndex-munyFeatures.length]
+          if(nextFeature.get('MUNICIPALITY') == 'UNINCORPORATED') {
+            console.log('got unincorporated') //this shouldn't happen anymore
+            return getNextThing()
+          }
           isNeighborhood=true
         }
         console.log("next feature: ",nextFeature)
@@ -220,39 +251,13 @@ class BingMap extends Component {
       // centerAndZoom(map,{y:38.622042,x:-90.280927,zoom:12.52})
     }
 
-    const bingy=new BingMaps({
-      key: 'YOUR KEY HERE',
-      imagerySet: 'RoadOnDemand',
-      mapLayer:'Background',
-      tileLoadFunction:function(tile, src) {
-        //hide labels
-        tile.getImage().src = src.replace('it=G,L','it=G');
-        // console.log(tile)
-      }
-      // projection: olProj.createProjection('EPSG:4326')
-    })
-    // console.log('proj:',olProj.createProjection('EPSG:4326'))
-    const myMap = new olMap({
-      view: new olView({
-        center: [0, 0],
-        zoom: 1
-      }),
-      layers: [
-        new TileLayer({
-          // customMapStyle: myStyle,
-          opacity:1,
-          visible:true,
-          source: bingy
-        })
-      ],
-      target: 'map'
-    })
+    
 
-    console.log('props:',bingy.getProperties())
+    // console.log('props:',bingy.getProperties())
     
     return (
 
-<Map map={myMap} onMapInit={onMapInit}>
+<Map map={this.myMap} onMapInit={onMapInit}>
 <Controls />
       </Map>
       
