@@ -17,7 +17,7 @@ class BingMap extends Component {
   constructor(props) {
     super(props)
     const bingy=new BingMaps({
-      key: 'AvGbr0brC5E7wrJ0C-XGykeJ0ngQkRQegl08LYdYtyJnFg3BxZomRllZUzGRembV',
+      key: 'YOUR KEY HERE',
       imagerySet: 'RoadOnDemand',
       mapLayer:'Background',
       tileLoadFunction:function(tile, src) {

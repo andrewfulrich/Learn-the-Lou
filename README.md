@@ -6,6 +6,10 @@ cd into dir `cd ol-kit-map`
 
 run `npm i`
 
+Get a Bing Maps API Key: https://docs.microsoft.com/en-us/bingmaps/getting-started/bing-maps-dev-center-help/getting-a-bing-maps-key
+
+Put it into `src/BingMap.js` where it says `key: 'YOUR KEY HERE'`
+
 start app `npm start`
 
 ### to run with local version of @bayer/ol-kit
